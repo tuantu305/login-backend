@@ -8,28 +8,31 @@ import (
 
 var (
 	BACKEND_ADDRESS string
+	BACKEND_NODE    string
 )
 
 func init() {
 	BACKEND_ADDRESS = os.Getenv("BACKEND_ADDRESS")
+	BACKEND_NODE = os.Getenv("BACKEND_NODE")
 }
 
 func main() {
 	router := gin.Default()
+	messageQueue := newMockMQ()
+	idGenerator := newMockIdGenerator(BACKEND_NODE)
 
-	router.POST("/register", registerHandler)
+	registerHandler := newRegisterHandler(
+		messageQueue,
+		idGenerator,
+	)
+
+	router.POST("/register", registerHandler.handle)
 	router.POST("/login", loginHandler)
 
 	err := router.Run(BACKEND_ADDRESS)
 	if err != nil {
 		panic(err)
 	}
-}
-
-func registerHandler(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "register",
-	})
 }
 
 func loginHandler(c *gin.Context) {
