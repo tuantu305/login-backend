@@ -28,17 +28,13 @@ func main() {
 		idGenerator,
 	)
 
+	loginHandler := newLoginHandler()
+
 	router.POST("/register", registerHandler.handle)
-	router.POST("/login", loginHandler)
+	router.POST("/login", loginHandler.handle)
 
 	err := router.Run(BACKEND_ADDRESS)
 	if err != nil {
 		panic(err)
 	}
-}
-
-func loginHandler(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "login",
-	})
 }

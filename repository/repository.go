@@ -20,7 +20,7 @@ type User struct {
 	LastLogin   time.Time
 }
 
-type LoginRepository interface {
+type UserRepository interface {
 	GetUserByName(username string) (User, error)
 	GetUserByPhoneNumber(phone string) (User, error)
 	GetUserByEmail(email string) (User, error)
@@ -65,7 +65,7 @@ func (m *inMemoryLoginRepository) SetUser(user User) error {
 	return nil
 }
 
-func NewInMemoryLoginRepository() LoginRepository {
+func NewInMemoryLoginRepository() UserRepository {
 	return &inMemoryLoginRepository{
 		users: make(map[string]User),
 	}

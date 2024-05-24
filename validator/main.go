@@ -45,7 +45,7 @@ type RegisterResponseMsg struct {
 func validateRegisterRequest(
 	req RegisterRequest,
 	sanitizer Sanitizer,
-	db repository.LoginRepository,
+	db repository.UserRepository,
 ) error {
 	if req.PhoneNumner == "" && req.Email == "" && req.Username == "" {
 		return errMustNotEmpty
