@@ -1,6 +1,10 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"login/mq"
+
+	"github.com/gin-gonic/gin"
+)
 
 type RegisterRequest struct {
 	Fullname    string `json:"fullname,omitempty"`
@@ -22,8 +26,13 @@ type RegisterRequestMsg struct {
 	Request RegisterRequest `json:"register_request"`
 }
 
+type RegisterResponseMsg struct {
+	Id       string           `json:"id"`
+	Response RegisterResponse `json:"register_response"`
+}
+
 type registerHandler struct {
-	mq    MessageQueue
+	mq    mq.MessageQueue
 	idGen IdGenerator
 }
 
@@ -78,7 +87,7 @@ func (rh *registerHandler) initSelector() {
 
 }
 
-func newRegisterHandler(mq MessageQueue, idGen IdGenerator) *registerHandler {
+func newRegisterHandler(mq mq.MessageQueue, idGen IdGenerator) *registerHandler {
 	reg := &registerHandler{
 		mq:    mq,
 		idGen: idGen,

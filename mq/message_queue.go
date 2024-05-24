@@ -1,4 +1,4 @@
-package main
+package mq
 
 import (
 	"errors"
@@ -10,9 +10,17 @@ var (
 	errMQSub    = errors.New("error subscribe message")
 )
 
-type MessageQueue interface {
+type MessageQueuePubliser interface {
 	Public(topic string, message interface{}) error
+}
+
+type MessageQueueSubscriber interface {
 	Subscribe(topic string, handler func(msg interface{}) error) error
+}
+
+type MessageQueue interface {
+	MessageQueuePubliser
+	MessageQueueSubscriber
 }
 
 type mockMessageQueue struct {
@@ -36,8 +44,31 @@ func (mq *mockMessageQueue) Subscribe(topic string, handler func(msg interface{}
 	return errMQSub
 }
 
-func newMockMQ() MessageQueue {
+func NewMockMQ() MessageQueue {
 	return &mockMessageQueue{
 		rand: rand.New(rand.NewSource(0)),
 	}
+}
+
+type mockSubscriber struct {
+}
+
+func (s *mockSubscriber) Subscribe(topic string, handler func(msg interface{}) error) error {
+	handler("Mocking message")
+	return nil
+}
+
+func NewMockSubscriber() MessageQueueSubscriber {
+	return &mockSubscriber{}
+}
+
+type mockPublisher struct {
+}
+
+func (p *mockPublisher) Public(topic string, message interface{}) error {
+	return nil
+}
+
+func NewMockPublisher() MessageQueuePubliser {
+	return &mockPublisher{}
 }
