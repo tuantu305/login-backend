@@ -4,6 +4,7 @@ import (
 	"login/entity"
 	"login/internal/utility"
 	"login/mq"
+	"net/http"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -42,17 +43,13 @@ func (rh *registerHandler) handle(c *gin.Context) {
 	// TODO: retry or circuit breaker here
 	err = rh.mq.Public("register", msg)
 	if err != nil {
-		c.JSON(500, gin.H{
-			"message": "error",
-		})
+		c.JSON(http.StatusInternalServerError, entity.ErrorResponse{Message: "internal server error"})
 		return
 	}
 
 	resp := rh.getResponse(id)
 
-	c.JSON(resp.Code, gin.H{
-		"status": resp.Status,
-	})
+	c.JSON(resp.Code, entity.ErrorResponse{Message: resp.Status})
 }
 
 func (rh *registerHandler) getResponse(id string) entity.RegisterResponse {

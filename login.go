@@ -3,6 +3,7 @@ package main
 import (
 	"login/entity"
 	"login/internal/utility"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -24,15 +25,13 @@ func (h *LoginHandler) handle(c *gin.Context) {
 	loginUser := entity.LoginRequest{}
 	err := c.ShouldBind(&loginUser)
 	if err != nil {
-		c.JSON(400, gin.H{
-			"message": "invalid request",
-		})
+		c.JSON(http.StatusBadRequest, entity.ErrorResponse{Message: "invalid request"})
+		return
 	}
 
 	if loginUser.Username == "" && loginUser.Email == "" && loginUser.PhoneNumber == "" {
-		c.JSON(400, gin.H{
-			"message": "invalid request",
-		})
+		c.JSON(http.StatusBadRequest, entity.ErrorResponse{Message: "invalid request"})
+		return
 	}
 	var user entity.User
 
@@ -47,9 +46,8 @@ func (h *LoginHandler) handle(c *gin.Context) {
 		}
 
 		if err != nil {
-			c.JSON(404, gin.H{
-				"message": "user not found",
-			})
+			c.JSON(http.StatusNotFound, entity.ErrorResponse{Message: "user not found"})
+			return
 		}
 
 		h.cache.SetUser(c, user.Username, user)
@@ -60,23 +58,20 @@ func (h *LoginHandler) handle(c *gin.Context) {
 	// but bcrypt is insanely slow
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginUser.Password))
 	if err != nil {
-		c.JSON(401, gin.H{
-			"message": "invalid password",
-		})
+		c.JSON(http.StatusForbidden, entity.ErrorResponse{Message: "invalid password"})
+		return
 	}
 
 	accessToken, err := utility.CreateAccessToken(&user, JWT_SECRET, JWT_EXPIRY)
 	if err != nil {
-		c.JSON(500, gin.H{
-			"message": "internal server error",
-		})
+		c.JSON(http.StatusInternalServerError, entity.ErrorResponse{Message: "internal server error"})
+		return
 	}
 
 	refreshToken, err := utility.CreateAccessToken(&user, JWT_REFRESH_SECRET, JWT_REFRESH_EXPIRY)
 	if err != nil {
-		c.JSON(500, gin.H{
-			"message": "internal server error",
-		})
+		c.JSON(http.StatusInternalServerError, entity.ErrorResponse{Message: "internal server error"})
+		return
 	}
 
 	resp := entity.LoginResponse{
@@ -84,7 +79,7 @@ func (h *LoginHandler) handle(c *gin.Context) {
 		RefreshToken: refreshToken,
 	}
 
-	c.JSON(200, resp)
+	c.JSON(http.StatusAccepted, resp)
 }
 
 func newLoginHandler(
