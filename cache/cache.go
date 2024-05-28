@@ -10,11 +10,6 @@ var (
 	ErrUserNotFound = errors.New("user not found")
 )
 
-type Cache interface {
-	SetUser(c context.Context, key string, value entity.User) error
-	GetUser(c context.Context, key string) (entity.User, error)
-}
-
 type inMemoryCache struct {
 	cache map[string]entity.User
 }
@@ -32,7 +27,7 @@ func (i *inMemoryCache) GetUser(c context.Context, key string) (entity.User, err
 	return user, nil
 }
 
-func NewInMemoryCache() Cache {
+func NewInMemoryCache() entity.Cache {
 	return &inMemoryCache{
 		cache: make(map[string]entity.User),
 	}

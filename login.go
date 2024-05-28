@@ -1,7 +1,6 @@
 package main
 
 import (
-	"login/cache"
 	"login/entity"
 	"login/internal/utility"
 
@@ -18,7 +17,7 @@ var (
 
 type LoginHandler struct {
 	db    entity.UserRepository
-	cache cache.Cache
+	cache entity.Cache
 }
 
 func (h *LoginHandler) handle(c *gin.Context) {
@@ -90,7 +89,7 @@ func (h *LoginHandler) handle(c *gin.Context) {
 
 func newLoginHandler(
 	db entity.UserRepository,
-	cache cache.Cache,
+	cache entity.Cache,
 ) *LoginHandler {
 	return &LoginHandler{
 		db:    db,
