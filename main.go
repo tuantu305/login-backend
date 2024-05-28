@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"login/internal/utility"
 	"login/mq"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +22,7 @@ func init() {
 func main() {
 	router := gin.Default()
 	messageQueue := mq.NewMockMQ()
-	idGenerator := newMockIdGenerator(BACKEND_NODE)
+	idGenerator := utility.NewMockIdGenerator(BACKEND_NODE)
 
 	registerHandler := newRegisterHandler(
 		messageQueue,

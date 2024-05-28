@@ -1,10 +1,11 @@
 package main
 
 import (
+	"context"
 	"errors"
+	"login/entity"
 	"login/mq"
 	"login/repository"
-	"time"
 )
 
 var (
@@ -15,75 +16,27 @@ var (
 	errLastLogin     = errors.New("invalid last login")
 )
 
-type RegisterRequest struct {
-	Fullname    string `json:"fullname,omitempty"`
-	PhoneNumner string `json:"phone_number,omitempty"`
-	Email       string `json:"email,omitempty"`
-	Username    string `json:"username,omitempty"`
-	Password    string `json:"password,omitempty"`
-	Birthdate   string `json:"birthdate,omitempty"`
-	LastLogin   string `json:"last_login,omitempty"`
-}
-
-type RegisterResponse struct {
-	Code   int    `json:"code,omitempty"`
-	Status string `json:"status,omitempty"`
-}
-
-type RegisterRequestMsg struct {
-	Id      string          `json:"id"`
-	Request RegisterRequest `json:"register_request"`
-}
-
-type RegisterResponseMsg struct {
-	Id       string           `json:"id"`
-	Response RegisterResponse `json:"register_response"`
-}
-
 // Consider to use validator library
 // Sanitize input to prevent SQL Injection
 func validateRegisterRequest(
-	req RegisterRequest,
+	ctx context.Context,
+	req entity.User,
 	sanitizer Sanitizer,
-	db repository.UserRepository,
+	db entity.UserRepository,
 ) error {
-	if req.PhoneNumner == "" && req.Email == "" && req.Username == "" {
+	if req.PhoneNumber == "" && req.Email == "" && req.Username == "" {
 		return errMustNotEmpty
-	}
-
-	if req.Password == "" {
-		return errPasswordIsReq
 	}
 
 	if !sanitizer.Verify(req.Password) {
 		return errPasswordWeak
 	}
 
-	user := repository.User{}
+	req.Fullname = sanitizer.Sanitize(req.Fullname)
+	req.PhoneNumber = sanitizer.Sanitize(req.PhoneNumber)
+	req.Email = sanitizer.Sanitize(req.Email)
 
-	if req.Birthdate != "" {
-		birth, err := time.Parse("2006-01-02", req.Birthdate)
-		if err != nil {
-			return errBirthdate
-		}
-		user.Birthdate = birth
-	}
-
-	if req.LastLogin != "" {
-		lastLogin, err := time.Parse("2006-01-02", req.LastLogin)
-		if err != nil {
-			return errLastLogin
-		}
-		user.LastLogin = lastLogin
-	}
-
-	user.Fullname = sanitizer.Sanitize(req.Fullname)
-	user.PhoneNumber = sanitizer.Sanitize(req.PhoneNumner)
-	user.Email = sanitizer.Sanitize(req.Email)
-	user.Username = req.Username
-	user.Password = req.Password
-
-	err := db.SetUser(user)
+	err := db.Set(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -98,23 +51,24 @@ func main() {
 	publiser := mq.NewMockPublisher()
 	subscriber := mq.NewMockSubscriber()
 	sanitizer := NewMockSanitizer()
-	db := repository.NewInMemoryLoginRepository()
+	db := repository.NewInMemoryUserRepository()
 
 	subscriber.Subscribe("register", func(msg interface{}) error {
-		registerMsg, ok := msg.(RegisterRequestMsg)
+		registerMsg, ok := msg.(entity.RegisterRequestMsg)
 		if !ok {
 			return errors.New("invalid message")
 		}
 
 		err := validateRegisterRequest(
-			registerMsg.Request,
+			context.Background(),
+			registerMsg.User,
 			sanitizer,
 			db,
 		)
 		if err != nil {
-			publiser.Public("register_response", RegisterResponseMsg{
+			publiser.Public("register_response", entity.RegisterResponseMsg{
 				Id: registerMsg.Id,
-				Response: RegisterResponse{
+				Response: entity.RegisterResponse{
 					Code:   500,
 					Status: err.Error(),
 				},
@@ -122,9 +76,9 @@ func main() {
 			return err
 		}
 
-		publiser.Public("register_response", RegisterResponseMsg{
+		publiser.Public("register_response", entity.RegisterResponseMsg{
 			Id: registerMsg.Id,
-			Response: RegisterResponse{
+			Response: entity.RegisterResponse{
 				Code:   200,
 				Status: "success",
 			},

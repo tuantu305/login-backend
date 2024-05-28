@@ -1,4 +1,4 @@
-package main
+package utility
 
 import (
 	"encoding/base64"
@@ -24,7 +24,7 @@ func (mig *mockIdGenerator) Generate() string {
 	return base64.StdEncoding.EncodeToString([]byte(mig.nodeId + "-" + string(mig.counter)))
 }
 
-func newMockIdGenerator(node string) IdGenerator {
+func NewMockIdGenerator(node string) IdGenerator {
 	return &mockIdGenerator{
 		nodeId:  node,
 		counter: 0,

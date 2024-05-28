@@ -1,39 +1,16 @@
 package main
 
 import (
+	"login/entity"
+	"login/internal/utility"
 	"login/mq"
 
 	"github.com/gin-gonic/gin"
 )
 
-type RegisterRequest struct {
-	Fullname    string `json:"fullname,omitempty"`
-	PhoneNumner string `json:"phone_number,omitempty"`
-	Email       string `json:"email,omitempty"`
-	Username    string `json:"username,omitempty"`
-	Password    string `json:"password,omitempty"`
-	Birthdate   string `json:"birthdate,omitempty"`
-	LastLogin   string `json:"last_login,omitempty"`
-}
-
-type RegisterResponse struct {
-	Code   int    `json:"code,omitempty"`
-	Status string `json:"status,omitempty"`
-}
-
-type RegisterRequestMsg struct {
-	Id      string          `json:"id"`
-	Request RegisterRequest `json:"register_request"`
-}
-
-type RegisterResponseMsg struct {
-	Id       string           `json:"id"`
-	Response RegisterResponse `json:"register_response"`
-}
-
 type registerHandler struct {
 	mq    mq.MessageQueue
-	idGen IdGenerator
+	idGen utility.IdGenerator
 }
 
 // Build message and send to message queue for processing
@@ -42,8 +19,8 @@ type registerHandler struct {
 // TODO: Add log, retry, monitor mechanism
 func (rh *registerHandler) handle(c *gin.Context) {
 	// Parse request
-	var req RegisterRequest
-	err := c.BindJSON(&req)
+	var req entity.User
+	err := c.ShouldBind(&req)
 	if err != nil {
 		c.AbortWithStatus(400)
 		return
@@ -53,9 +30,9 @@ func (rh *registerHandler) handle(c *gin.Context) {
 	id := rh.idGen.Generate()
 
 	// Build message
-	msg := RegisterRequestMsg{
-		Id:      id,
-		Request: req,
+	msg := entity.RegisterRequestMsg{
+		Id:   id,
+		User: req,
 	}
 
 	// Send message to message queue
@@ -75,8 +52,8 @@ func (rh *registerHandler) handle(c *gin.Context) {
 	})
 }
 
-func (rh *registerHandler) getResponse(id string) RegisterResponse {
-	return RegisterResponse{
+func (rh *registerHandler) getResponse(id string) entity.RegisterResponse {
+	return entity.RegisterResponse{
 		Code:   200,
 		Status: "OK",
 	}
@@ -87,7 +64,7 @@ func (rh *registerHandler) initSelector() {
 
 }
 
-func newRegisterHandler(mq mq.MessageQueue, idGen IdGenerator) *registerHandler {
+func newRegisterHandler(mq mq.MessageQueue, idGen utility.IdGenerator) *registerHandler {
 	reg := &registerHandler{
 		mq:    mq,
 		idGen: idGen,
