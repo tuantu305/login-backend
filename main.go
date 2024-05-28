@@ -3,8 +3,10 @@ package main
 import (
 	"os"
 
+	"login/cache"
 	"login/internal/utility"
 	"login/mq"
+	"login/repository"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,13 +25,11 @@ func main() {
 	router := gin.Default()
 	messageQueue := mq.NewMockMQ()
 	idGenerator := utility.NewMockIdGenerator(BACKEND_NODE)
+	db := repository.NewInMemoryUserRepository()
+	cache := cache.NewInMemoryCache()
 
-	registerHandler := newRegisterHandler(
-		messageQueue,
-		idGenerator,
-	)
-
-	loginHandler := newLoginHandler()
+	registerHandler := newRegisterHandler(messageQueue, idGenerator)
+	loginHandler := newLoginHandler(db, cache)
 
 	router.POST("/register", registerHandler.handle)
 	router.POST("/login", loginHandler.handle)

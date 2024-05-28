@@ -6,6 +6,8 @@ import (
 	"login/entity"
 	"login/mq"
 	"login/repository"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -36,7 +38,14 @@ func validateRegisterRequest(
 	req.PhoneNumber = sanitizer.Sanitize(req.PhoneNumber)
 	req.Email = sanitizer.Sanitize(req.Email)
 
-	err := db.Set(ctx, req)
+	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	req.Password = string(encryptedPassword)
+
+	err = db.Set(ctx, req)
 	if err != nil {
 		return err
 	}
