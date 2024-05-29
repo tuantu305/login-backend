@@ -13,9 +13,9 @@ type User struct {
 }
 
 type UserRepository interface {
-	GetByName(c context.Context, username string) (User, error)
-	GetByPhoneNumber(c context.Context, phone string) (User, error)
-	GetByEmail(c context.Context, email string) (User, error)
+	GetByName(c context.Context, username string) (*User, error)
+	GetByPhoneNumber(c context.Context, phone string) (*User, error)
+	GetByEmail(c context.Context, email string) (*User, error)
 	Set(c context.Context, user User) error
 	Fetch(c context.Context) ([]User, error)
 }

@@ -37,13 +37,16 @@ func (h *LoginHandler) handle(c *gin.Context) {
 
 	user, err = h.cache.GetUser(c, loginUser.Username)
 	if err != nil {
+		var userDb *entity.User
 		if loginUser.Username != "" {
-			user, err = h.db.GetByName(c, loginUser.Username)
+			userDb, err = h.db.GetByName(c, loginUser.Username)
 		} else if loginUser.Email != "" {
-			user, err = h.db.GetByEmail(c, loginUser.Email)
+			userDb, err = h.db.GetByEmail(c, loginUser.Email)
 		} else if loginUser.PhoneNumber != "" {
-			user, err = h.db.GetByPhoneNumber(c, loginUser.PhoneNumber)
+			userDb, err = h.db.GetByPhoneNumber(c, loginUser.PhoneNumber)
 		}
+
+		user = *userDb
 
 		if err != nil {
 			c.JSON(http.StatusNotFound, entity.ErrorResponse{Message: "user not found"})

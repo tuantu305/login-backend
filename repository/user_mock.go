@@ -15,30 +15,30 @@ type inMemoryUserRepository struct {
 	users map[string]entity.User
 }
 
-func (m *inMemoryUserRepository) GetByName(c context.Context, username string) (entity.User, error) {
+func (m *inMemoryUserRepository) GetByName(c context.Context, username string) (*entity.User, error) {
 	user, ok := m.users[username]
 	if !ok {
-		return entity.User{}, ErrUserNotFound
+		return nil, ErrUserNotFound
 	}
-	return user, nil
+	return &user, nil
 }
 
-func (m *inMemoryUserRepository) GetByPhoneNumber(c context.Context, phone string) (entity.User, error) {
+func (m *inMemoryUserRepository) GetByPhoneNumber(c context.Context, phone string) (*entity.User, error) {
 	for _, user := range m.users {
 		if user.PhoneNumber == phone {
-			return user, nil
+			return &user, nil
 		}
 	}
-	return entity.User{}, ErrUserNotFound
+	return nil, ErrUserNotFound
 }
 
-func (m *inMemoryUserRepository) GetByEmail(c context.Context, email string) (entity.User, error) {
+func (m *inMemoryUserRepository) GetByEmail(c context.Context, email string) (*entity.User, error) {
 	for _, user := range m.users {
 		if user.Email == email {
-			return user, nil
+			return &user, nil
 		}
 	}
-	return entity.User{}, ErrUserNotFound
+	return nil, ErrUserNotFound
 }
 
 func (m *inMemoryUserRepository) Set(c context.Context, user entity.User) error {
