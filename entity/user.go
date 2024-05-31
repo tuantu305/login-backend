@@ -1,15 +1,20 @@
 package entity
 
-import "context"
+import (
+	"context"
+
+	"github.com/google/uuid"
+)
 
 type User struct {
-	Fullname    string `json:"fullname"`
-	PhoneNumber string `json:"phone_number" binding:"e164"`
-	Email       string `json:"email" binding:"email"`
-	Username    string `json:"username"`
-	Password    string `json:"password" binding:"required"`
-	Birthdate   string `json:"birthdate" time_format:"2006-01-02" time_utc:"true"`
-	LastLogin   string `json:"last_login" time_format:"2006-01-02 15:04:05" time_utc:"true"`
+	Id          uuid.UUID `json:"id"`
+	Fullname    string    `json:"fullname"`
+	PhoneNumber string    `json:"phone_number" binding:"e164"`
+	Email       string    `json:"email" binding:"email"`
+	Username    string    `json:"username"`
+	Password    string    `json:"password" binding:"required"`
+	Birthdate   string    `json:"birthdate" time_format:"2006-01-02" time_utc:"true"`
+	LastLogin   string    `json:"last_login" time_format:"2006-01-02 15:04:05" time_utc:"true"`
 }
 
 type UserRepository interface {
