@@ -39,6 +39,7 @@ func main() {
 	backendAddress := os.Getenv(BACKEND_ADDRESS)
 
 	router := gin.Default()
+	v1 := router.Group("/v1")
 	messageQueue := mq.NewMockMQ()
 	idGenerator := utility.NewMockIdGenerator(backendNode)
 	db := repository.NewUserPgRepository(dbConn)
@@ -47,8 +48,8 @@ func main() {
 	registerHandler := newRegisterHandler(messageQueue, idGenerator)
 	loginHandler := newLoginHandler(db, cache)
 
-	router.POST("/register", registerHandler.handle)
-	router.POST("/login", loginHandler.handle)
+	v1.POST("/register", registerHandler.handle)
+	v1.POST("/login", loginHandler.handle)
 
 	err = router.Run(backendAddress)
 	if err != nil {
