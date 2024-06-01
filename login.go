@@ -1,19 +1,22 @@
 package main
 
 import (
+	"log"
 	"login/entity"
 	"login/internal/utility"
 	"net/http"
+	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var (
-	JWT_SECRET         = ""
-	JWT_EXPIRY         = 1000
-	JWT_REFRESH_SECRET = ""
-	JWT_REFRESH_EXPIRY = 2000
+	JWT_SECRET         string
+	JWT_EXPIRY         int
+	JWT_REFRESH_SECRET string
+	JWT_REFRESH_EXPIRY int
 )
 
 type LoginHandler struct {
@@ -85,10 +88,18 @@ func (h *LoginHandler) handle(c *gin.Context) {
 	c.JSON(http.StatusAccepted, resp)
 }
 
-func newLoginHandler(
-	db entity.UserRepository,
-	cache entity.Cache,
-) *LoginHandler {
+func newLoginHandler(db entity.UserRepository, cache entity.Cache) *LoginHandler {
+	var err error
+	JWT_SECRET = os.Getenv("JWT_SECRET")
+	JWT_EXPIRY, err = strconv.Atoi(os.Getenv("JWT_EXPIRY"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	JWT_REFRESH_SECRET = os.Getenv("JWT_REFRESH")
+	JWT_REFRESH_EXPIRY, err = strconv.Atoi(os.Getenv("JWT_REFRESH_EXPIRY"))
+	if err != nil {
+		log.Fatal(err)
+	}
 	return &LoginHandler{
 		db:    db,
 		cache: cache,

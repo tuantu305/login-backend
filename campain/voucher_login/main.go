@@ -7,16 +7,23 @@ import (
 	"login/entity"
 	"login/mq"
 	"login/repository"
+	"os"
 	"time"
 
 	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/stdlib" // required for sqlx.Connect
 	"github.com/jmoiron/sqlx"
+	"github.com/joho/godotenv"
 )
 
 const (
 	CouponNumber = 100
+	PG_HOST      = "PG_HOST"
+	PG_PORT      = "PG_PORT"
+	PG_USER      = "PG_USER"
+	PG_PASSWORD  = "PG_PASSWORD"
+	PG_DBNAME    = "PG_DBNAME"
 )
 
 var (
@@ -84,6 +91,10 @@ func (c *CampainVoucherLogin) run() {
 }
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal(err)
+	}
+
 	pgldb, err := pg_conn()
 	if err != nil {
 		log.Fatal(err)
@@ -98,12 +109,17 @@ func main() {
 }
 
 func pg_conn() (*sqlx.DB, error) {
+	pg_host := os.Getenv(PG_HOST)
+	pg_port := os.Getenv(PG_PORT)
+	pg_user := os.Getenv(PG_USER)
+	pg_password := os.Getenv(PG_PASSWORD)
+	pg_dbname := os.Getenv(PG_DBNAME)
 	dataSourceName := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		"localhost",
-		"5432",
-		"postgres",
-		"password",
-		"login")
+		pg_host,
+		pg_port,
+		pg_user,
+		pg_password,
+		pg_dbname)
 
 	db, err := sqlx.Connect("pgx", dataSourceName)
 	if err != nil {
