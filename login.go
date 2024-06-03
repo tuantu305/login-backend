@@ -85,7 +85,7 @@ func (h *LoginHandler) handle(c *gin.Context) {
 		RefreshToken: refreshToken,
 	}
 
-	c.JSON(http.StatusAccepted, resp)
+	c.JSON(http.StatusOK, resp)
 }
 
 func newLoginHandler(db entity.UserRepository, cache entity.Cache) *LoginHandler {

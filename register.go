@@ -26,7 +26,7 @@ func (rh *registerHandler) handle(c *gin.Context) {
 	var req entity.User
 	err := c.ShouldBind(&req)
 	if err != nil {
-		c.AbortWithStatus(400)
+		c.JSON(http.StatusBadRequest, entity.ErrorResponse{Message: "invalid request"})
 		return
 	}
 
